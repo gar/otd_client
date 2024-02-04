@@ -1,18 +1,29 @@
 defmodule OTDBClient do
   @moduledoc """
-  Documentation for `OTDBClient`.
+  A client to access trivia questions from the Open Trivia DB.
   """
 
-  @doc """
-  Hello world.
+  alias OTDBClient.HTTPClient
+  alias OTDBClient.Question
 
-  ## Examples
+  @callback get_questions() :: [Question.t()]
 
-      iex> OTDBClient.hello()
-      :world
+  @spec get_questions() :: [Question.t()] | {:error, term()}
+  def get_questions do
+    impl().get_questions()
+    |> Enum.reduce_while({:ok, []}, fn question_map, {:ok, acc} ->
+      case Question.new(question_map) do
+        {:ok, question} -> {:cont, {:ok, [question | acc]}}
+        {:error, _} = error -> {:halt, error}
+      end
+    end)
+    |> case do
+      {:ok, questions} -> Enum.reverse(questions)
+      error -> error
+    end
+  end
 
-  """
-  def hello do
-    :world
+  defp impl do
+    Application.get_env(:otdb_client, :api_client, HTTPClient)
   end
 end
