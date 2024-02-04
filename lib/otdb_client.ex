@@ -8,9 +8,9 @@ defmodule OTDBClient do
 
   @callback get_questions() :: [Question.t()]
 
-  @spec get_questions() :: [Question.t()] | {:error, term()}
-  def get_questions do
-    impl().get_questions()
+  @spec get_questions(keyword()) :: [Question.t()] | {:error, term()}
+  def get_questions(opts \\ []) do
+    impl().get_questions(opts)
     |> Enum.reduce_while({:ok, []}, fn question_map, {:ok, acc} ->
       case Question.new(question_map) do
         {:ok, question} -> {:cont, {:ok, [question | acc]}}

@@ -8,11 +8,28 @@ defmodule OTDBClient.HTTPClient do
 
   @spec get_questions() :: [Question.t()] | {:error, term()}
   @impl true
-  def get_questions do
-    with {:ok, response} <- Req.get("https://opentdb.com/api.php?amount=10"),
+  def get_questions(opts \\ []) do
+    with {:ok, params} <- build_question_params(opts),
+         {:ok, response} <- request("/api.php", params),
          {:ok, successful_response} <- parse_response(response) do
       successful_response.body["results"]
     end
+  end
+
+  @allowed_question_params ~w(amount category difficulty type)a
+  defp build_question_params(opts) do
+    opts
+    |> Keyword.keys()
+    |> Enum.all?(fn key -> key in @allowed_question_params end)
+    |> case do
+      true -> {:ok, Keyword.merge([amount: 10], opts)}
+      false -> {:error, "Invalid question params in #{inspect(opts)}"}
+    end
+  end
+
+  defp request(path, params) do
+    Req.new(base_url: "https://opentdb.com/")
+    |> Req.get(url: path, params: params)
   end
 
   defp parse_response(%Req.Response{body: %{"response_code" => 0}} = response),
