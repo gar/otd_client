@@ -93,4 +93,12 @@ defmodule OTDBClient.Question do
       error -> error
     end
   end
+
+  @doc false
+  # Just used to make sure atoms are preexisting
+  def allowed_types, do: @allowed_types
+
+  @doc false
+  # Just used to make sure atoms are preexisting
+  def allowed_difficulties, do: @allowed_difficulties
 end
